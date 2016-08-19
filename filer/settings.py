@@ -13,6 +13,7 @@ from .utils.recursive_dictionary import RecursiveDictionaryWithExcludes
 
 logger = logging.getLogger(__name__)
 
+FILER_FILE_MODEL = getattr(settings, 'FILER_FILE_MODEL', False)
 FILER_IMAGE_MODEL = getattr(settings, 'FILER_IMAGE_MODEL', False)
 FILER_DEBUG = getattr(settings, 'FILER_DEBUG', False)  # When True makes
 FILER_SUBJECT_LOCATION_IMAGE_DEBUG = getattr(settings, 'FILER_SUBJECT_LOCATION_IMAGE_DEBUG', False)
@@ -53,7 +54,8 @@ if not all(x in FILER_ADMIN_ICON_SIZES for x in _ESSENTIAL_ICON_SIZES):
 FILER_FILE_MODELS = getattr(
     settings, 'FILER_FILE_MODELS',
     (FILER_IMAGE_MODEL if FILER_IMAGE_MODEL else 'filer.models.imagemodels.Image',
-     'filer.models.filemodels.File'))
+     FILER_FILE_MODEL if FILER_FILE_MODEL else 'filer.models.filemodels.File')
+)
 
 DEFAULT_FILE_STORAGE = getattr(settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
 
