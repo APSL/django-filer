@@ -22,3 +22,13 @@ def get_model_label(model):
             model._meta.app_label,
             model.__name__
         )
+
+
+def get_model_reference(model):
+    """
+    """
+    if isinstance(model, six.string_types):
+        path_parts = model.split('.')
+        return "{}.{}".format(path_parts[0], path_parts[-1])
+    else:
+        return "{}.{}".format(model._meta.app_label, model.__name__)

@@ -19,9 +19,9 @@ from django.utils.translation import ugettext_lazy as _
 from . import mixins
 from .. import settings as filer_settings
 from ..fields.multistorage_file import MultiStorageFileField
-from ..utils.loader import load_object
 from ..utils.compatibility import LTE_DJANGO_1_7, PILImage
 from ..utils.filer_easy_thumbnails import FilerThumbnailer
+from ..utils.model_label import get_model_reference
 from ..utils.pil_exif import get_exif_for_file
 from .foldermodels import Folder
 
@@ -356,14 +356,9 @@ class BaseImage(BaseFile):
                                         default='')
 
     if DJANGO_GTE_17:
-        reference = "filer.File"
-        if filer_settings.FILER_FILE_MODEL:
-            model = load_object(filer_settings.FILER_FILE_MODEL)
-            reference = "{}.{}".format(model._meta.app_label,
-                                       model._meta.model_name)
-
         file_ptr = models.OneToOneField(
-            to=reference, related_name='%(app_label)s_%(class)s_file',
+            to=filer_settings.FILER_FILE_REFERENCE,
+            related_name='%(app_label)s_%(class)s_file',
             on_delete=models.CASCADE)
 
     @classmethod

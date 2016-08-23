@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from . import filemodels
+from .. import settings as filer_settings
 from ..utils.compatibility import python_2_unicode_compatible
 
 
@@ -16,7 +17,7 @@ class Clipboard(models.Model):
         getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
         verbose_name=_('user'), related_name="filer_clipboards")
     files = models.ManyToManyField(
-        getattr(settings, 'FILER_FILE_CLASS', 'filer.File'),
+        filer_settings.FILER_FILE_REFERENCE,
         verbose_name=_('files'), related_name="in_clipboards",
         through='ClipboardItem')
 
@@ -41,7 +42,7 @@ class Clipboard(models.Model):
 
 class ClipboardItem(models.Model):
     file = models.ForeignKey(
-        getattr(settings, 'FILER_FILE_CLASS', 'filer.File'),
+        filer_settings.FILER_FILE_REFERENCE,
         verbose_name=_('file'))
     clipboard = models.ForeignKey(Clipboard, verbose_name=_('clipboard'))
 

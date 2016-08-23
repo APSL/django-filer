@@ -9,11 +9,14 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 
 from .utils.loader import load_object
+from .utils.model_label import get_model_reference
 from .utils.recursive_dictionary import RecursiveDictionaryWithExcludes
 
 logger = logging.getLogger(__name__)
 
 FILER_FILE_MODEL = getattr(settings, 'FILER_FILE_MODEL', False)
+FILER_FILE_REFERENCE = get_model_reference(getattr(settings, 'FILER_FILE_MODEL', 'filer.File'))
+
 FILER_IMAGE_MODEL = getattr(settings, 'FILER_IMAGE_MODEL', False)
 FILER_DEBUG = getattr(settings, 'FILER_DEBUG', False)  # When True makes
 FILER_SUBJECT_LOCATION_IMAGE_DEBUG = getattr(settings, 'FILER_SUBJECT_LOCATION_IMAGE_DEBUG', False)
