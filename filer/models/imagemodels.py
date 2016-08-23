@@ -16,7 +16,6 @@ from .abstract import BaseImage
 
 logger = logging.getLogger("filer")
 
-
 if not filer_settings.FILER_IMAGE_MODEL:
     # This is the standard Image model
     class Image(BaseImage):

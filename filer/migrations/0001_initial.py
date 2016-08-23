@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 import filer.fields.multistorage_file
 import filer.models.mixins
-from filer.settings import FILER_IMAGE_MODEL
+from filer.settings import FILER_IMAGE_MODEL, FILER_FILE_MODEL
 from django.conf import settings
 
 
@@ -39,27 +39,6 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'clipboard items',
             },
             bases=(models.Model,),
-        ),
-        migrations.CreateModel(
-            name='File',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('file', filer.fields.multistorage_file.MultiStorageFileField(max_length=255, upload_to=filer.fields.multistorage_file.generate_filename_multistorage, null=True, verbose_name='file', blank=True)),
-                ('_file_size', models.IntegerField(null=True, verbose_name='file size', blank=True)),
-                ('sha1', models.CharField(default='', max_length=40, verbose_name='sha1', blank=True)),
-                ('has_all_mandatory_data', models.BooleanField(default=False, verbose_name='has all mandatory data', editable=False)),
-                ('original_filename', models.CharField(max_length=255, null=True, verbose_name='original filename', blank=True)),
-                ('name', models.CharField(default='', max_length=255, verbose_name='name', blank=True)),
-                ('description', models.TextField(null=True, verbose_name='description', blank=True)),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True, verbose_name='uploaded at')),
-                ('modified_at', models.DateTimeField(auto_now=True, verbose_name='modified at')),
-                ('is_public', models.BooleanField(default=True, help_text='Disable any permission checking for this file. File will be publicly accessible to anyone.', verbose_name='Permissions disabled')),
-            ],
-            options={
-                'verbose_name': 'file',
-                'verbose_name_plural': 'files',
-            },
-            bases=(models.Model, filer.models.mixins.IconsMixin),
         ),
         migrations.CreateModel(
             name='Folder',
@@ -108,42 +87,68 @@ class Migration(migrations.Migration):
             unique_together=set([('parent', 'name')]),
         ),
         migrations.AddField(
-            model_name='file',
-            name='folder',
-            field=models.ForeignKey(related_name='all_files', verbose_name='folder', blank=True, to='filer.Folder', null=True),
-            preserve_default=True,
-        ),
-        migrations.AddField(
-            model_name='file',
-            name='owner',
-            field=models.ForeignKey(related_name='owned_files', verbose_name='owner', blank=True, to=settings.AUTH_USER_MODEL, null=True),
-            preserve_default=True,
-        ),
-        migrations.AddField(
-            model_name='file',
-            name='polymorphic_ctype',
-            field=models.ForeignKey(related_name='polymorphic_filer.file_set', editable=False, to='contenttypes.ContentType', null=True),
-            preserve_default=True,
-        ),
-        migrations.AddField(
-            model_name='clipboarditem',
-            name='file',
-            field=models.ForeignKey(verbose_name='file', to='filer.File'),
-            preserve_default=True,
-        ),
-        migrations.AddField(
-            model_name='clipboard',
-            name='files',
-            field=models.ManyToManyField(related_name='in_clipboards', verbose_name='files', through='filer.ClipboardItem', to='filer.File'),
-            preserve_default=True,
-        ),
-        migrations.AddField(
             model_name='clipboard',
             name='user',
             field=models.ForeignKey(related_name='filer_clipboards', verbose_name='user', to=settings.AUTH_USER_MODEL),
             preserve_default=True,
         ),
     ]
+
+    if not FILER_FILE_MODEL:
+        operations.extend([
+            migrations.CreateModel(
+                name='File',
+                fields=[
+                    ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                    ('file', filer.fields.multistorage_file.MultiStorageFileField(max_length=255, upload_to=filer.fields.multistorage_file.generate_filename_multistorage, null=True, verbose_name='file', blank=True)),
+                    ('_file_size', models.IntegerField(null=True, verbose_name='file size', blank=True)),
+                    ('sha1', models.CharField(default='', max_length=40, verbose_name='sha1', blank=True)),
+                    ('has_all_mandatory_data', models.BooleanField(default=False, verbose_name='has all mandatory data', editable=False)),
+                    ('original_filename', models.CharField(max_length=255, null=True, verbose_name='original filename', blank=True)),
+                    ('name', models.CharField(default='', max_length=255, verbose_name='name', blank=True)),
+                    ('description', models.TextField(null=True, verbose_name='description', blank=True)),
+                    ('uploaded_at', models.DateTimeField(auto_now_add=True, verbose_name='uploaded at')),
+                    ('modified_at', models.DateTimeField(auto_now=True, verbose_name='modified at')),
+                    ('is_public', models.BooleanField(default=True, help_text='Disable any permission checking for this file. File will be publicly accessible to anyone.', verbose_name='Permissions disabled')),
+                ],
+                options={
+                    'verbose_name': 'file',
+                    'verbose_name_plural': 'files',
+                },
+                bases=(models.Model, filer.models.mixins.IconsMixin),
+            ),
+            migrations.AddField(
+                model_name='file',
+                name='folder',
+                field=models.ForeignKey(related_name='%(app_label)s_%(class)s_all', verbose_name='folder', blank=True, to='filer.Folder', null=True),
+                preserve_default=True,
+            ),
+            migrations.AddField(
+                model_name='file',
+                name='owner',
+                field=models.ForeignKey(related_name='%(app_label)s_%(class)s_owner', verbose_name='owner', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+                preserve_default=True,
+            ),
+            migrations.AddField(
+                model_name='file',
+                name='polymorphic_ctype',
+                field=models.ForeignKey(related_name='polymorphic_filer.file_set', editable=False, to='contenttypes.ContentType', null=True),
+                preserve_default=True,
+            ),
+            migrations.AddField(
+                model_name='clipboard',
+                name='files',
+                field=models.ManyToManyField(related_name='in_clipboards', verbose_name='files', through='filer.ClipboardItem', to='filer.File'),
+                preserve_default=True,
+            ),
+            migrations.AddField(
+                model_name='clipboarditem',
+                name='file',
+                field=models.ForeignKey(verbose_name='file', to='filer.File'),
+                preserve_default=True,
+            ),
+        ])
+
     if not FILER_IMAGE_MODEL:
         operations.append(
             migrations.CreateModel(

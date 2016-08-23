@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from filer.settings import FILER_FILE_MODEL
 
 
 class Migration(migrations.Migration):
@@ -14,11 +15,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='file',
-            name='owner',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='owned_files', to=settings.AUTH_USER_MODEL, verbose_name='owner'),
-        ),
         migrations.AlterField(
             model_name='folder',
             name='owner',
@@ -30,3 +26,13 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='filer_folder_permissions', to=settings.AUTH_USER_MODEL, verbose_name='user'),
         ),
     ]
+
+    if not FILER_FILE_MODEL:
+        operations.append(
+            migrations.AlterField(
+                model_name='file',
+                name='owner',
+                field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='owned_files', to=settings.AUTH_USER_MODEL, verbose_name='owner'),
+            )
+        )
+

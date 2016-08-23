@@ -55,8 +55,9 @@ class FileManager(PolymorphicManager):
 class BaseFile(PolymorphicModel, mixins.IconsMixin):
     file_type = 'File'
     _icon = "file"
-    folder = models.ForeignKey(Folder, verbose_name=_('folder'), related_name='all_files',
-        null=True, blank=True)
+    folder = models.ForeignKey(Folder, verbose_name=_('folder'),
+        related_name='%(app_label)s_%(class)s_all', null=True, blank=True)
+
     file = MultiStorageFileField(_('file'), null=True, blank=True, max_length=255)
     _file_size = models.IntegerField(_('file size'), null=True, blank=True)
 
@@ -71,7 +72,7 @@ class BaseFile(PolymorphicModel, mixins.IconsMixin):
         verbose_name=_('description'))
 
     owner = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-        related_name='owned_%(class)ss', on_delete=models.SET_NULL,
+        related_name='%(app_label)s_%(class)s_owner', on_delete=models.SET_NULL,
         null=True, blank=True, verbose_name=_('owner'))
 
     uploaded_at = models.DateTimeField(_('uploaded at'), auto_now_add=True)
@@ -328,9 +329,6 @@ class BaseFile(PolymorphicModel, mixins.IconsMixin):
         return BaseFile.objects.find_duplicates(self)
 
     class Meta(object):
-        app_label = 'filer'
-        verbose_name = _('file')
-        verbose_name_plural = _('files')
         abstract = True
 
 
@@ -355,9 +353,12 @@ class BaseImage(BaseFile):
 
     subject_location = models.CharField(_('subject location'), max_length=64, blank=True,
                                         default='')
+
     if DJANGO_GTE_17:
-        file_ptr = models.OneToOneField(to='filer.File', related_name='%(app_label)s_%(class)s_file',
-                                        on_delete=models.CASCADE)
+        file_model = getattr(settings, 'FILER_FILE_CLASS', 'filer.File')
+        file_ptr = models.OneToOneField(
+            to=file_model, related_name='%(app_label)s_%(class)s_file',
+            blank=True, null=True, on_delete=models.CASCADE)
 
     @classmethod
     def matches_file_type(cls, iname, ifile, request):
@@ -484,8 +485,5 @@ class BaseImage(BaseFile):
         return tn
 
     class Meta(object):
-        app_label = 'filer'
-        verbose_name = _('image')
-        verbose_name_plural = _('images')
         abstract = True
 

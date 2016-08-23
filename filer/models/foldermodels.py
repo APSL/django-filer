@@ -15,6 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 from . import mixins
 from .. import settings as filer_settings
 from ..utils.compatibility import python_2_unicode_compatible
+from ..utils.loader import load_object
 
 
 class FolderManager(models.Manager):
@@ -132,7 +133,16 @@ class Folder(models.Model, mixins.IconsMixin):
 
     @property
     def files(self):
-        return self.all_files.all()
+        klass = load_object(getattr(settings, 'FILER_FILE_MODEL', 'filer.File'))
+        klass.objects.filter(folder=self)
+        field_name = '{app_label}_{klass}_all'.format(
+            app_label=klass._meta.app_label.lower(),
+            klass=klass.__name__.lower()
+        )
+        try:
+            return getattr(self, field_name).all()
+        except AttributeError:
+            return klass.objects.none()
 
     @property
     def logical_path(self):

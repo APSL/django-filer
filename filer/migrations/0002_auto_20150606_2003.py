@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from filer.settings import FILER_FILE_MODEL
 
 
 class Migration(migrations.Migration):
@@ -10,11 +11,12 @@ class Migration(migrations.Migration):
         ('filer', '0001_initial'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='file',
-            name='polymorphic_ctype',
-            field=models.ForeignKey(related_name='polymorphic_filer.file_set+', editable=False, to='contenttypes.ContentType', null=True),
-            preserve_default=True,
-        ),
-    ]
+    if not FILER_FILE_MODEL:
+        operations = [
+            migrations.AlterField(
+                model_name='file',
+                name='polymorphic_ctype',
+                field=models.ForeignKey(related_name='polymorphic_filer.file_set+', editable=False, to='contenttypes.ContentType', null=True),
+                preserve_default=True,
+            ),
+        ]

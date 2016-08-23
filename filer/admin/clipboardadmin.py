@@ -13,6 +13,7 @@ from django.views.generic import View
 from . import views
 from .. import settings as filer_settings
 from ..models import Clipboard, ClipboardItem, Folder, Image
+from ..models.abstract import DJANGO_GTE_17
 from ..utils.compatibility import LTE_DJANGO_1_4
 from ..utils.files import (
     UploadException, handle_request_files_upload, handle_upload,
@@ -89,10 +90,13 @@ class AjaxUploadView(View):
                 context.pop('instance', None)
             else:
                 context = self.form_invalid(form)
-        except UploadException as e:
+        except (UploadException, Exception) as ue:
+            context = {'data': {'error': str(ue)}}
+        except Exception as e:
             context = {'data': {'error': str(e)}}
-            context.update(**self.response_params)
+
         finally:
+
             return HttpResponse(context.pop('data', ''), **context)
 
     @property
@@ -117,7 +121,6 @@ class AjaxUploadView(View):
         return folder
 
     def get_form(self):
-        self.get_folder()
         try:
             if len(self.request.FILES) == 1:
                 # dont check if request is ajax or not, just grab the file
@@ -149,10 +152,11 @@ class AjaxUploadView(View):
             raise UploadException(str(e))
 
     def form_valid(self, form):
+        folder = self.get_folder()
         file_obj = form.save(commit=False)
         # Enforce the FILER_IS_PUBLIC_DEFAULT
         file_obj.is_public = filer_settings.FILER_IS_PUBLIC_DEFAULT
-        file_obj.folder = self.get_folder()
+        file_obj.folder = folder
         file_obj.save()
 
         # TODO: Deprecated/refactor
