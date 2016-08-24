@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 class AdminFileWidget(ForeignKeyRawIdWidget):
     choices = None
 
+    def update_context(self, context):
+        return context
+
     def render(self, name, value, attrs=None):
         obj = self.obj_for_value(value)
         css_id = attrs.get('id', 'id_image_x')
@@ -71,6 +74,7 @@ class AdminFileWidget(ForeignKeyRawIdWidget):
             ),
             'LTE_DJANGO_1_7': LTE_DJANGO_1_7,
         }
+        context = self.update_context(context)
         html = render_to_string('admin/filer/widgets/admin_file.html', context)
         return mark_safe(html)
 
